@@ -4,7 +4,8 @@
   "description": "一个简单的博客的后端",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint --fix ./components ./models ./routes app.js"
+    "lint": "eslint --fix ./components ./models ./routes app.js",
+    "start": "NODE_ENV=dev node app.js"
   },
   "repository": {
     "type": "git",

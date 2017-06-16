@@ -53,5 +53,31 @@ module.exports = sequelize => {
     }
   }, {
     freezeTableName: true
-  })
+  });
+
+  sequelize.define('AccountRole', {
+    id: {
+      type: Sequelize.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      unique: true
+    },
+    status: {
+      type: Sequelize.INTEGER,
+      defaultValue: 1
+    }
+  });
+
+  sequelize.define('ArticleTag', {
+    id: {
+      type: Sequelize.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      unique: true
+    },
+    status: {
+      type: Sequelize.INTEGER,
+      defaultValue: 1
+    }
+  });
 };
