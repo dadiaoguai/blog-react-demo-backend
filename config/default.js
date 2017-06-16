@@ -3,7 +3,7 @@ const args = require('./appconfig/args'),
 
 module.exports = {
   mysql: {
-    database: 'loncus_test',
+    database: 'blog-react-demo',
     username: 'root',
     password: '123456',
     options: {
@@ -17,7 +17,7 @@ module.exports = {
     port: 6379,
   },
   cache: false,
-  port: 3000,
+  port: 5100,
   args,
   errors,
   cluster: false,

@@ -4,7 +4,7 @@
   "description": "一个简单的博客的后端",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint --fix ./components ./models ./routes app.js"
   },
   "repository": {
     "type": "git",

@@ -11,7 +11,17 @@ module.exports = models => {
     unique: false
   });
 
+  models.tag.belongsToMany(models.article, {
+    through: models.ArticleTag,
+    unique: false
+  })
+  models.article.belongsToMany(models.tag, {
+    through: models.ArticleTag,
+    unique: false
+  })
+
   models.grant.belongsTo(models.role);
+  models.grant.belongsTo(models.role, {foreignKey: 'childRole'});
   models.grant.belongsTo(models.permission);
   models.role.hasMany(models.grant);
   models.permission.hasMany(models.grant)

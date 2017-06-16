@@ -9,7 +9,7 @@ const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.p
 let db = {};
 
 fs.readdirSync(__dirname, 'utf8')
-  .filter(file => file.endsWith('.js') && file !== 'index.js' && file !== 'association.js' && file !== 'redis.js').forEach(file => {
+  .filter(file => file.endsWith('.js') && file !== 'index.js' && file !== 'association.js').forEach(file => {
     sequelize.import(path.join(__dirname, file))
   });
 

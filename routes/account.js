@@ -12,8 +12,7 @@ exports.getlist = (req, res) => {
   let model = new Model('account');
 
   let args = [
-    new Arg('limit').setDefault(defaultLimit), new Arg('offset', true, 'integer'),
-    new Arg('username')
+    new Arg('limit').setDefault(defaultLimit), new Arg('offset', true, 'integer'), new Arg('username')
   ];
 
   if (!api.setArgs(args)) {

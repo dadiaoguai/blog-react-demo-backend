@@ -1,5 +1,5 @@
 module.exports = {
-  port: 3306,
+  port: 5101,
   cluster: false,
   cache: false
 }
