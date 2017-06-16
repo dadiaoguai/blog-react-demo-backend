@@ -1,0 +1,54 @@
+{
+  "name": "blog-react-demo-backend",
+  "version": "1.0.0",
+  "description": "一个简单的博客的后端",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dadiaoguai/blog-react-demo-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dadiaoguai/blog-react-demo-backend/issues"
+  },
+  "homepage": "https://github.com/dadiaoguai/blog-react-demo-backend#readme",
+  "dependencies": {
+    "body-parser": "~1.15.2",
+    "cookie-parser": "^1.4.3",
+    "express": "~4.14.0",
+    "express-session": "^1.15.2",
+    "morgan": "~1.7.0",
+    "circular-json": "^0.3.1",
+    "config": "^1.26.1",
+    "connect-flash": "^0.1.1",
+    "cors": "^2.8.3",
+    "express-mysql-session": "^1.2.0",
+    "lodash": "^4.17.4",
+    "moment": "^2.18.1",
+    "mysql": "^2.13.0",
+    "mysql2": "^1.2.0",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
+    "rbac": "^4.0.2",
+    "redis": "^2.7.1",
+    "sequelize": "^3.30.4",
+    "sequelize-redis-cache": "^2.0.0",
+    "web-error": "^4.0.1",
+    "winston": "^2.3.1",
+    "winston-daily-rotate-file": "^1.4.6"
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.2.3",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.5.2",
+    "babel-register": "^6.24.1",
+    "debug": "^2.6.3",
+    "eslint": "^4.0.0",
+    "mocha": "^3.4.2",
+    "should": "^11.2.1"
+  }
+}
