@@ -11,7 +11,7 @@ module.exports = {
    * @return {boolean}
    */
   isEmpty: (value, strict = true) => {
-    if (_.isBoolean(value) || _.isDate(value)) {
+    if (_.isBoolean(value) || _.isDate(value) || _.isNumber(value)) {
       return false
     }
 

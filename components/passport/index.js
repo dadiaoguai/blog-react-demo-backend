@@ -12,7 +12,7 @@ exports.login = (req, username, password, done) => {
     if (!obj) {
       return done(null, false, '无效的账号');
     }
-    let computedPassword = common.computedPassword(password);
+    let computedPassword = common.computedPassword(password + '');
 
     if (obj.password !== computedPassword) {
       return done(null, false, '密码错误');

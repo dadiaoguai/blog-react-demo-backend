@@ -31,7 +31,6 @@ class ApiDialect {
    * @return {boolean}
    */
   setArgs (args) {
-
     /* ------------------------ 参数判断 ---------------------------------- */
     if (!_.isArray(args)) {
       throw new Error('参数类型必须是Array!');
@@ -41,7 +40,6 @@ class ApiDialect {
     }
 
     let params = Object.assign({}, this.req.params, this.req.query, this.req.body);
-
     /* ------------------------ 开始处理参数 ---------------------------------- */
     let result = true;
     let stdArgs = {status: cfg.status.normal}; // 标准参数容器

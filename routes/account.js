@@ -1,8 +1,8 @@
 const
-  cfg = require('../config/appconfig/args'),
+  cfg = require('config').args,
   Model = require('../components/models').Basic,
   {ApiDialect, Arg} = require('../components').ApiDialect,
-  common = require('../components').Common;
+  common = require('../components').Common.Basic;
 
 const defaultLimit = 5,
   existedAccountError = 51;
@@ -38,7 +38,7 @@ exports.new = (req, res) => {
   let model = new Model('account');
 
   let args = [
-    new Arg('username', true), new Arg('password', true)
+    new Arg('username', true, 'string'), new Arg('password', true, 'string')
   ];
 
   if (!api.setArgs(args)) {
@@ -54,7 +54,10 @@ exports.new = (req, res) => {
     }
     let obj = await model.create(api.args);
 
-    api.setResponse(obj).send({remove: ['password']})
+    api.setResponse(obj).send({
+      remove: ['password'],
+      dateFormat: ['YYYY-MM-DD HH:mm', 'createdAt', 'updatedAt']
+    })
   };
 
   run().catch(err => api.error(err))

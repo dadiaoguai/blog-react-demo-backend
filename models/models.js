@@ -46,14 +46,15 @@ module.exports = sequelize => {
       primaryKey: true,
       unique: true
     },
-    name: {type: Sequelize.STRING, allowNull: false},
+    name: {
+      type: Sequelize.STRING,
+      allowNull: false
+    },
     status: {
       type: Sequelize.INTEGER,
       defaultValue: 1
     }
-  }, {
-    freezeTableName: true
-  });
+  }, {freezeTableName: true});
 
   sequelize.define('AccountRole', {
     id: {
