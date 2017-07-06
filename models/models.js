@@ -32,6 +32,7 @@ module.exports = sequelize => {
       unique: true
     },
     title: {type: Sequelize.STRING},
+    author: {type: Sequelize.STRING},
     content: {type: Sequelize.TEXT},
     status: {
       type: Sequelize.INTEGER,

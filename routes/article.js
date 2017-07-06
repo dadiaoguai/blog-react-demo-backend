@@ -10,7 +10,7 @@ exports.getlist = (req, res) => {
 
 exports.new = (req, res) => {
   let body = req.body;
-
+  body.accountId = req.user.id
   models.article.create(body)
     .then(objs => {
       res.json(objs)

@@ -2,8 +2,8 @@ const account = require('./account'),
   article = require('./article'),
   error = require('./error');
 
-// const accessValidator = require('../components').RBAC,
-//   Passport = require('../components').Passport;
+const accessValidator = require('../components').RBAC,
+  Passport = require('../components').Passport;
 
 module.exports = (router, passport, rbac) => {
   router.route('/login')
@@ -28,7 +28,7 @@ module.exports = (router, passport, rbac) => {
 
   router.route('/articles')
     .get(article.getlist)
-    .post(article.new);
+    .post(Passport.isAuthenticated,article.new);
 
   router.route('/articles/:id')
     .get(article.get)

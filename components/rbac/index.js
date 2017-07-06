@@ -1,8 +1,8 @@
 const RBAC = require('rbac').default,
-  WebError = require('web-error').default,
-  models = require('../../models').models,
-  config = require('config').get('args'),
-  _ = require('lodash');
+WebError = require('web-error').default,
+models = require('../../models').models,
+config = require('config').get('args'),
+_ = require('lodash');
 
 const unAuthenticatedCode = 401;
 
@@ -30,13 +30,20 @@ exports.buildRbacArgs = async cb => {
     if (!_.has(args.permissions, p.target)) {
       args.permissions[p.target] = [p.operation];
     }
-    if (_.has(args.permissions, p.target && !_.has(args.permissions[p.target], p.operation))) {
+    if (_.has(args.permissions, p.target) && !args.permissions[p.target].includes(p.operation)) {
       args.permissions[p.target].push(p.operation)
     }
   });
-
   roles.forEach(role => {
-    args.grants[role.id] = role.grants.map(grant => `${grant.permission.operation}_${grant.permission.target}`);
+    args.grants[role.id] = role.grants.map(grant => {
+      if (!_.isNull(grant.permissionId) && _.isNull(grant.childRole)) {
+        return `${grant.permission.operation}_${grant.permission.target}`
+      } else if (!_.isNull(grant.childRole) && _.isNull(grant.permissionId)) {
+        return grant.childRole
+      } else {
+        return false
+      }
+    })
   });
 
   return new RBAC(args, (err, rbac) => {
