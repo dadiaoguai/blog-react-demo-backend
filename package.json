@@ -48,7 +48,7 @@
     "babel-preset-env": "^1.5.2",
     "babel-register": "^6.24.1",
     "debug": "^2.6.3",
-    "eslint": "^4.0.0",
+    "eslint": "^4.2.0",
     "mocha": "^3.4.2",
     "should": "^11.2.1"
   }

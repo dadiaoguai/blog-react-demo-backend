@@ -1,7 +1,26 @@
-const models = require('../models').models;
+const models = require('../models').models,
+  {ApiDialect, Arg} = require('../components').ApiDialect,
+  Model = require('../components').Model.Basic
+  sequelize = require('../models').sequelize
 
 exports.getlist = (req, res) => {
+  let [api, article] = [new ApiDialect(req, res), new Model('article')]
+  let args = [new Arg('limit', false, 'integer'), new Arg('offset', false, 'integer')]
 
+  if (!api.setArgs(args)) {
+    return
+  }
+
+  api.args.accountId = req.user.id
+  article
+    .setWherestr(api.args)
+    .all()
+    .then(objs => {
+      api
+        .setResponse(objs)
+        .send()
+    })
+    .catch(err => api.error(err))
 }
 
 exports.new = (req, res) => {

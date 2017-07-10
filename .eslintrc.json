@@ -5,15 +5,19 @@
     },
     "extends": "eslint:recommended",
     "parser": "babel-eslint",
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module"
+    },
     "rules": {
         "accessor-pairs": "error",  // get set 必须都在
         "array-bracket-spacing": [  // array 不允许有空格
             "error",
             "never"
         ],
-        "array-callback-return": "error", // array 方法一定要有返回
-        "array-element-newline": ["error", { "minItems": 5 }], // 每个元素后面都要有空格
-        "arrow-body-style": ["error", "as-needed", { "requireReturnForObjectLiteral": true }], // 箭头函数是否要带大括号
+        "array-callback-return": "off", // array 方法一定要有返回
+        "array-element-newline": ["warn", { "minItems": 4 }], // 每个元素后面都要有空格
+        "arrow-body-style": ["error", "as-needed"], // 箭头函数是否要带大括号
         "arrow-parens": [ //参数是否要有小括号
             "error",
             "as-needed"
@@ -32,7 +36,7 @@
             "1tbs"
         ],
         "callback-return": ["error", ["done", "cb"]],  // cb 需要加返回
-        "camelcase": "error", // 驼峰式命名
+        "camelcase": "warn", // 驼峰式命名
         "capitalized-comments": "off",
         "class-methods-use-this": "error", // class 中必须使用 this
         "comma-dangle": ["error", "only-multiline"],
@@ -40,7 +44,7 @@
         "comma-style": ["error", "last"], // 对象逗号 在每行的后面
         "complexity": "error",
         "computed-property-spacing": "error",
-        "consistent-return": "error",
+        "consistent-return": "warn",
         "consistent-this": ["error", "self"],
         "curly": "error",
         "default-case": "error",
@@ -59,11 +63,11 @@
         "for-direction": "error",
         "func-call-spacing": "error",
         "func-name-matching": "error",
-        "func-names": "error",
+        "func-names": "off",
         "func-style": "off",
         "generator-star-spacing": "error",
         "global-require": "off",
-        "guard-for-in": "error",
+        "guard-for-in": "off",
         "handle-callback-err": "error",
         "id-blacklist": "error",
         "id-length": "off",
@@ -116,7 +120,7 @@
         "no-empty-function": "error",
         "no-eq-null": "error",
         "no-eval": "error",
-        "no-extend-native": "error",
+        "no-extend-native": "off",
         "no-extra-bind": "error",
         "no-extra-label": "error",
         "no-extra-parens": "error",
@@ -132,11 +136,11 @@
         "no-lone-blocks": "error",
         "no-lonely-if": "off",
         "no-loop-func": "error",
-        "no-magic-numbers": ["error", { "ignoreArrayIndexes": true, "ignore": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] }],
+        "no-magic-numbers": ["warn", { "ignoreArrayIndexes": true, "ignore": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0.5] }],
         "no-mixed-operators": "off",
         "no-mixed-requires": "off",
         "no-multi-assign": "error",
-        "no-multi-spaces": "error",
+        "no-multi-spaces": "off",
         "no-multi-str": "error",
         "no-multiple-empty-lines": "error",
         "no-native-reassign": "error",
@@ -160,13 +164,13 @@
         "no-process-env": "error",
         "no-process-exit": "error",
         "no-proto": "error",
-        "no-prototype-builtins": "error",
+        "no-prototype-builtins": "off",
         "no-restricted-globals": "error",
         "no-restricted-imports": "error",
         "no-restricted-modules": "error",
         "no-restricted-properties": "error",
         "no-restricted-syntax": "error",
-        "no-return-assign": "error",
+        "no-return-assign": "warn",
         "no-return-await": "error",
         "no-script-url": "error",
         "no-self-compare": "error",
@@ -179,9 +183,10 @@
         "no-template-curly-in-string": "error",
         "no-ternary": "off",
         "no-throw-literal": "error",
-        "no-trailing-spaces": "error",
+        "no-trailing-spaces": "off",
         "no-undef-init": "error",
         "no-undefined": "off",
+        "no-undef": "warn",
         "no-underscore-dangle": "off",
         "no-unmodified-loop-condition": "error",
         "no-unneeded-ternary": "error",
@@ -199,12 +204,12 @@
         "no-with": "error",
         "no-unused-vars": ["warn", {"args": "none", "vars": "local"}],
         "nonblock-statement-body-position": "error",
-        "object-curly-newline": "error",
+        "object-curly-newline": "warn",
         "object-curly-spacing": [
             "error",
             "never"
         ],
-        "object-property-newline": "error",
+        "object-property-newline": "off",
         "object-shorthand": "error",
         "one-var": "off",
         "one-var-declaration-per-line": "error",
@@ -243,7 +248,7 @@
             "error",
             "last"
         ],
-        "sort-imports": "error",
+        "sort-imports": "off",
         "sort-keys": "off",
         "sort-vars": "off",
         "space-before-blocks": "error",
@@ -275,7 +280,7 @@
         ],
         "valid-jsdoc": ["error", { "requireReturnDescription": false }],
         "vars-on-top": "error",
-        "wrap-iife": "error",
+        "wrap-iife": "off",
         "wrap-regex": "error",
         "yield-star-spacing": "error",
         "yoda": "error"

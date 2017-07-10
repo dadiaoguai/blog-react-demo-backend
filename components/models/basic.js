@@ -14,7 +14,6 @@ const defaultDuration = 300,
   noLogin = 12,
   dftTTL = 300
 
-
 /*
  * 这是一个封装了 sequelize 处理的类, 简化了查询条件的格式, 简化了输出内容的格式
  * 使用方法: model = new Model('表名')
