@@ -1,3 +1,3 @@
-const Basic = require('./basic');
+const Basic = require('./basic')
 
-module.exports = {Basic};
+module.exports = {Basic}

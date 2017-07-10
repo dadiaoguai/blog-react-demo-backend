@@ -1,16 +1,18 @@
 const
   models = require('../../models').models,
-  common = require('../common').Basic,
+  common = require('../common/basic'),
   queryMap = require('./queryMap'),
   _ = require('lodash'),
   // util = require('util'),
   config = require('config'),
-  Cacher = config.cache ? require('../cache') : null;
+  Cacher = config.cache ? require('../cache') : null
 
 /*
  * 默认参数定义
  */
-const defaultDuration = 300;
+const defaultDuration = 300,
+  noLogin = 12,
+  dftTTL = 300
 
 
 /*
@@ -20,12 +22,12 @@ const defaultDuration = 300;
 
 class Model {
   constructor (model) {
-    this.model = models[model];
+    this.model = models[model]
     this.options = {
       include: [],
       subQuery: false
-    };
-    this.attributes = Object.keys(this.model.attributes);
+    }
+    this.attributes = Object.keys(this.model.attributes)
     this.name = model
   }
 
@@ -36,7 +38,7 @@ class Model {
    * @return {object}
    */
   setOptions (opts) {
-    this.options = opts;
+    this.options = opts
 
     return this
   }
@@ -48,7 +50,7 @@ class Model {
    * @return {object}
    */
   setWherestr (wherestr) {
-    this.options.where = whereHandler.call(this, wherestr);
+    this.options.where = whereHandler.call(this, wherestr)
     return this
   }
 
@@ -56,7 +58,7 @@ class Model {
    * 设置 limit 属性
    */
   setLimit (limit) {
-    this.options.limit = limitFactory(limit);
+    this.options.limit = limitFactory(limit)
 
     return this
   }
@@ -65,7 +67,7 @@ class Model {
    * 设置 offset 属性
    */
   setOffset (offset) {
-    this.options.offset = offsetFactory(offset);
+    this.options.offset = offsetFactory(offset)
 
     return this
   }
@@ -78,11 +80,11 @@ class Model {
    */
   setOrder (orders) {
     if (_.has(this.options, 'order')) {
-      let mul = false;
+      let mul = false
 
       for (let o in orders) {
         if (_.isArray(o)) {
-          mul = true;
+          mul = true
           break
         }
       }
@@ -104,13 +106,13 @@ class Model {
   setGroup (group) {
     if (_.has(this.options, 'group')) {
       if (_.isArray(group)) {
-        group.forEach(g => this.options.group.push(g));
+        group.forEach(g => this.options.group.push(g))
       }
       if (_.isString(group)) {
         this.options.group.push(group)
       }
     } else {
-      this.options.group = group;
+      this.options.group = group
     }
 
     return this
@@ -129,7 +131,7 @@ class Model {
    * @return {object}
    */
   setAttributes (attr) {
-    attrFactory.call(this, attr);
+    attrFactory.call(this, attr)
 
     return this
   }
@@ -140,7 +142,7 @@ class Model {
   addAttributes (attrs) {
     if (_.isArray(attrs)) {
       if (!this.options.attributes) {
-        this.options.attributes = {include: []};
+        this.options.attributes = {include: []}
         attrs.forEach(attr => this.options.attributes.include.push(attr))
       } else {
         attrs.forEach(attr => this.options.attributes.push(attr))
@@ -154,7 +156,7 @@ class Model {
    * 添加 include 属性
    */
   setInclude (include) {
-    this.options.include = include;
+    this.options.include = include
 
     return this
   }
@@ -163,7 +165,7 @@ class Model {
    * 添加事务
    */
   setTransaction (t) {
-    this.options.transaction = t;
+    this.options.transaction = t
 
     return this
   }
@@ -171,45 +173,80 @@ class Model {
   /**
    * findOne
    * @param {boolean} existedRequired, 值是否允许为空
-   *
+   * @param {any} t, 事务信标
+   * @param {boolean} cache, 是否缓存
+   * @param {integer} ttl, 缓存存货时间
    * @return {promise}
    */
-  async one (existedRequired = true) {
+  async one (existedRequired = true, t, cache = true, ttl = dftTTL) {
     // console.log(util.inspect(this.options, false, null))
-    let obj = await this.model.findOne(this.options);
+    if (config.cache && cache && this.model.constructor.name !== 'Cacher') {
+      this.model = Cacher.model(this.name).ttl(ttl)
+    }
+    if (t) {
+      this.options.transaction = t
+    }
+
+    let obj = await this.model.findOne(this.options)
 
     if (existedRequired && !obj) {
-      throw new Error(`${this.model.name} 中未查询到相关数据!`);
+      throw new Error(`${this.model.name} 中未查询到相关数据!`)
     }
 
     return obj
   }
 
-  /*
+  /**
    * findAll
+   * @param {any} t, 事务信标
+   * @param {boolean} cache, 是否缓存
+   * @param {integer} ttl, 缓存存货时间
+   * @return {promise}
    */
-  all () {
+  all (t = null, cache = true, ttl = dftTTL) {
     // console.log(util.inspect(this.options, false, null))
+    if (config.cache && cache && this.model.constructor.name !== 'Cacher') {
+      this.model = Cacher.model(this.name).ttl(ttl)
+    }
+
+    if (t) {
+      this.options.transaction = t
+    }
+
     return this.model.findAll(this.options)
   }
 
   /**
    * 更新数据
    * @param {object} args, 待更新参数
-   *
+   * @param {string} userId, 操作者的 id
+   * @param {any} t, 事务信标
    * @return {promise}
    */
-  update (args) {
-    let clearArgs = common.clear(args);
+  update (args, userId, t) {
+    let clearArgs = common.clear(args)
 
-    let updatedArgs = {};
+    let updatedArgs = {}
+
+    if (this.attributes.includes('updatedUsr') && !userId) {
+      throw new Error(noLogin)
+    }
+
+    if (this.attributes.includes('updatedUsr')) {
+      updatedArgs.updatedUsr = userId
+    }
 
     this.attributes.forEach(attr => {
       if (_.has(clearArgs, attr) && attr !== 'id') {
         updatedArgs[attr] = clearArgs[attr]
       }
-    });
-    _.has(this.options, 'where') ? this.options.where.id = clearArgs.id : this.options.where = {id: clearArgs.id};
+    })
+
+    _.has(this.options, 'where') ? this.options.where.id = clearArgs.id : this.options.where = {id: clearArgs.id}
+
+    if (t) {
+      this.options.transaction = t
+    }
 
     return this.model.update(updatedArgs, this.options)
   }
@@ -217,18 +254,52 @@ class Model {
   /**
    * 创建数据, 支持批量创建和单创建
    * @param {object|array} args, 创建 model 所需的数据
-   *
+   * @param {string} userId, 操作者的 id
+   * @param {any} t, 事务信标
    * @return {promise}
    */
-  create (args) {
-    let clearArgs = common.clear(args);
+  create (args, userId, t) {
+    let clearArgs = {}
+
+    Object.keys(args).forEach(key => {
+      if (this.attributes.includes(key) && !common.isEmpty(args[key])) {
+        clearArgs[key] = args[key]
+      }
+    })
+
+    if (this.attributes.includes('createdUsr') && !userId) {
+      throw new Error(noLogin)
+    }
+
+    if (this.attributes.includes('createdUsr')) {
+      clearArgs.createdUsr = userId
+    }
+
+    if (this.attributes.includes('updatedUsr')) {
+      clearArgs.updatedUsr = userId
+    }
 
     if (_.isArray(clearArgs)) {
       return this.model.bulkCreate(clearArgs)
     }
-    return this.model.create(clearArgs)
 
+    let run = async () => {
+      let obj
 
+      if (clearArgs.hasOwnProperty('id')) {
+        obj = await this.model.findOne({where: {id: clearArgs.id}, transaction: t})
+      }
+
+      if (obj) {
+        let dataExist = 51
+
+        throw new Error(dataExist)
+      } else {
+        return t ? this.model.create(clearArgs, {transaction: t}) : this.model.create(clearArgs)
+      }
+    }
+
+    return run()
   }
 
   /**
@@ -239,7 +310,7 @@ class Model {
    */
   cacherfy (t = defaultDuration) {
     if (config.cache) {
-      this.model = Cacher.model(this.name).ttl(t);
+      this.model = Cacher.model(this.name).ttl(t)
     }
 
     return this
@@ -247,10 +318,10 @@ class Model {
 
 }
 
-const queryRegStr = Object.keys(queryMap).map(k => k).join('|');
-const regOr = new RegExp(`_or_(${queryRegStr})$`);
-const regOrAnd = new RegExp(`_or_and_(${queryRegStr})$`);
-const reg = new RegExp(`_(${queryRegStr})$`);
+const queryRegStr = Object.keys(queryMap).map(k => k).join('|')
+const regOr = new RegExp(`_or_(${queryRegStr})$`)
+const regOrAnd = new RegExp(`_or_and_(${queryRegStr})$`)
+const reg = new RegExp(`_(${queryRegStr})$`)
 
 /**
  * where 属性处理, 跳过 limit 和 offset, 支持> < 模糊匹配等
@@ -259,9 +330,10 @@ const reg = new RegExp(`_(${queryRegStr})$`);
  *
  * @param {object} obj 待处理的目标
  * @return {object}
+ * @this Model
  */
 function whereHandler (obj) {
-  let result = {};
+  let result = {}
 
   Object.keys(obj).forEach(k => {
     if (this.attributes.some(field => k.startsWith(field))) {
@@ -276,7 +348,7 @@ function whereHandler (obj) {
     if (k.match(/\.\w+/)) {
       includeHandler.call(this, k, obj[k])
     }
-  });
+  })
 
   return result
 }
@@ -291,59 +363,60 @@ function whereHandler (obj) {
  * @param {string} md, model 名称
  *
  * @return {object}
+ * @this Model
  */
 function _queryField2where (container, k, v, md) {
-  let field, query;
+  let field, query
 
   if (reg.test(k) && !regOr.test(k) && !regOrAnd.test(k)) {
-    field = k.replace(reg, '');
+    field = k.replace(reg, '')
     if (md) { // 判断k是否在该表中
       if (!Object.keys(models[md].attributes).includes(field)) {
-        return;
+        return
       }
     } else {
       if (!this.attributes.includes(field)) {
-        return;
+        return
       }
     }
-    query = k.match(reg)[1];
+    query = k.match(reg)[1]
     if (container[field]) {
-      let tempValue = container[field];
+      let tempValue = container[field]
 
-      container[field] = {$or: {}};
-      container[field].$or[queryMap[query].name] = queryMap[query].handler(v);
+      container[field] = {$or: {}}
+      container[field].$or[queryMap[query].name] = queryMap[query].handler(v)
       _.isObject(tempValue) ? _.assign(container[field].$or, tempValue) : container[field].$or.$eq = tempValue
     } else {
-      container[field] = {};
+      container[field] = {}
       container[field][queryMap[query].name] = queryMap[query].handler(v)
     }
   }
 
   if (regOr.test(k)) {
-    field = k.replace(regOr, '');
+    field = k.replace(regOr, '')
     if (!this.attributes.includes(field)) {
-      return;
+      return
     }
-    query = k.match(regOr)[1];
-    let x = {};
+    query = k.match(regOr)[1]
+    let x = {}
 
-    x[field] = {};
-    x[field][queryMap[query].name] = queryMap[query].handler(v);
+    x[field] = {}
+    x[field][queryMap[query].name] = queryMap[query].handler(v)
     _.isArray(container.$or) ? container.$or.push(x) : container.$or = [x]
   }
 
   if (regOrAnd.test(k)) {
-    field = k.replace(regOrAnd, '');
+    field = k.replace(regOrAnd, '')
     if (!this.attributes.includes(field)) {
-      return;
+      return
     }
-    query = k.match(regOrAnd)[1];
-    let x = {};
+    query = k.match(regOrAnd)[1]
+    let x = {}
 
-    x[field] = {};
-    x[field][queryMap[query].name] = queryMap[query].handler(v);
+    x[field] = {}
+    x[field][queryMap[query].name] = queryMap[query].handler(v)
     if (_.isArray(container.$or)) {
-      let condition = _.find(container.$or, i => _.has(i, '$and'));
+      let condition = _.find(container.$or, i => _.has(i, '$and'))
 
       condition ? condition.$and.push(x) : container.$or.push({$and: [x]})
     } else {
@@ -352,7 +425,7 @@ function _queryField2where (container, k, v, md) {
   }
 
   if (this.attributes.includes(k)) {
-    container[k] = v;
+    container[k] = v
   }
 }
 
@@ -366,10 +439,11 @@ function _queryField2where (container, k, v, md) {
  * @param {string} v, value
  * @return {void}
  * @inner
+ * @this Model
  */
 function includeHandler (k, v) {
-  let mds = k.split('.');
-  let field = mds.pop();
+  let mds = k.split('.')
+  let field = mds.pop()
 
   _includeModel(this.options.include, mds, field, v)
 }
@@ -382,24 +456,25 @@ function includeHandler (k, v) {
  * @param {string} v, 参数的值
  * @return {void}
  * @inner
+ * @this Model
  */
 function _includeModel (include, mds, field, v) {
   if (include.length === 0) {
     include.push(_includeModelFactory.call(this, {}, mds, field, v))
   } else {
-    let includeModel = _.find(include, m => m.model.name === mds[0]);
+    let includeModel = _.find(include, m => m.model.name === mds[0])
 
     if (includeModel) {
-      let md = mds.shift();
+      let md = mds.shift()
 
       if (mds.length === 0) {
         if (!includeModel.where) {
-          includeModel.where = {};
+          includeModel.where = {}
         }
         _queryField2where.call(this, includeModel.where, field, v, md)
       } else {
         if (!includeModel.include) {
-          includeModel.include = [];
+          includeModel.include = []
         }
         _includeModel.call(this, includeModel.include, mds, field, v)
       }
@@ -417,21 +492,22 @@ function _includeModel (include, mds, field, v) {
  * @param {string} v, field 对应的值
  * @return {object}
  * @inner
+ * @this Model
  */
 function _includeModelFactory (obj, mds, field, v) {
-  let md = mds.shift();
+  let md = mds.shift()
 
-  obj.model = models[md];
+  obj.model = models[md]
 
   if (mds.length === 0) {
-    obj.attributes = ['id', field];
-    obj.where = {};
+    obj.attributes = ['id', field]
+    obj.where = {}
     _queryField2where.call(this, obj.where, field, v, md)
   } else {
-    obj.attributes = ['id'];
-    let includeObj = {};
+    obj.attributes = ['id']
+    let includeObj = {}
 
-    obj.include = [includeObj];
+    obj.include = [includeObj]
     _includeModelFactory.call(this, includeObj, mds, field, v)
   }
 
@@ -444,7 +520,7 @@ function _includeModelFactory (obj, mds, field, v) {
  * @return {void}
  */
 function limitFactory (obj) {
-  let result;
+  let result
 
   Object.keys(obj).forEach(k => {
     if (k === 'limit') {
@@ -460,7 +536,7 @@ function limitFactory (obj) {
  * @return {void}
  */
 function offsetFactory (obj) {
-  let result;
+  let result
 
   Object.keys(obj).forEach(k => {
     if (k === 'offset') {
@@ -478,10 +554,11 @@ function offsetFactory (obj) {
  *
  * @param {array} attrs, 所有的 include 的属性
  * @return {void}
+ * @this Model
  */
 function attrFactory (attrs) {
-  let directAttrs = [];
-  let includeAttrs = [];
+  let directAttrs = []
+  let includeAttrs = []
 
   attrs.forEach(attr => {
     if (_.isString(attr) && attr.startsWith('include.')) {
@@ -489,15 +566,17 @@ function attrFactory (attrs) {
     } else {
       directAttrs.push(attr)
     }
-  });
+  })
 
   if (directAttrs.includes('$all')) {
     if (directAttrs.length !== 1) {
-      this.options.attributes = {include: []};
+      this.options.attributes = {include: []}
       directAttrs.filter(attr => attr !== '$all').forEach(attr => {
         this.options.attributes.include.push(attr)
       })
     }
+  } else if (directAttrs.includes('$exclude')) {
+    this.options.attributes = {exclude: directAttrs.filter(attr => attr !== '$exclude')}
   } else {
     this.options.attributes = directAttrs
   }
@@ -514,30 +593,31 @@ function attrFactory (attrs) {
  * @param {array} include, include集合
  * @param {string} list, 每个 include 的详细属性
  * @return {void}
+ * @this Model
  */
 function nestHandler (include, list) {
-  let attributes = [];
+  let attributes = list
 
   if (_.isString(list)) {
-    attributes = list.split('.');
+    attributes = list.split('.')
   }
-  let md = attributes[0];
+  let md = attributes[0]
   let model = {
     model: models[md],
     include: []
-  };
-  let existModel = _.find(include, m => m.model.name === md);
+  }
+  let existModel = _.find(include, m => m.model.name === md)
 
   if (!existModel) {
     include.push(model)
   } else {
-    model = existModel;
+    model = existModel
     if (!model.include) {
       model.include = []
     }
   }
 
-  attributes.shift();
+  attributes.shift()
   attributes.length > 1 ? nestHandler.call(this, model.include, attributes) : _nestModelFactory.call(this, model, attributes[0])
 }
 
@@ -546,33 +626,37 @@ function nestHandler (include, list) {
  * @param {object} model, model 对象
  * @param {string} v, 具体的 attributes 值
  * @return {void}
+ * @this Model
  */
 function _nestModelFactory (model, v) {
-  let attrs = v.split('?')[0];
+  let attrs = v.split('?')[0]
 
   if (/\?/.test(v)) {
-    let args = v.split('?')[1];
+    let args = v.split('?')[1]
 
     if (!model.where) {
-      model.where = {};
+      model.where = {}
     }
     args.split('&').forEach(arg => {
       if (arg !== 'required') {
-        let field, value;
+        let field, value
 
-        [field, value] = arg.split('=');
+        [field, value] = arg.split('=')
         _queryField2where.call(this, model.where, field, value, model.model.name)
       }
-    });
+    })
 
     args.endsWith('required') ? model.required = true : model.required = false
   }
 
   if (attrs === '$null') {
-    model.attributes = [];
+    model.attributes = []
+  } else if (attrs.startsWith('$exclude:')) {
+    attrs = attrs.replace('$exclude:', '').split(',')
+    model.attributes = {exclude: attrs}
   } else if (attrs !== '$all') {
     model.attributes = attrs.split(',')
   }
 }
 
-module.exports = Model;
+module.exports = Model

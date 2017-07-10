@@ -36,22 +36,22 @@ module.exports = {
    */
   clear (obj, rm, strict = true) {
     if (rm && !_.isArray(rm)) {
-      throw new Error('remove 函数, rm 参数类型必须为 array');
+      throw new Error('remove 函数, rm 参数类型必须为 array')
     }
 
     if (_.isArray(obj) || _.isObject(obj)) {
-      let items = _.isArray(obj) ? obj : Object.keys(obj);
+      let items = _.isArray(obj) ? obj : Object.keys(obj)
 
       items.forEach(i => {
-        let value = _.isArray(obj) ? i : obj[i];
+        let value = _.isArray(obj) ? i : obj[i]
 
         if (rm && rm.includes(i)) {
           _.isArray(obj) ? _.remove(items, item => item === value) : delete obj[i]
-          return;
+          return
         }
 
         if (_.isNumber(value) || _.isDate(value) || _.isBoolean(value)) {
-          return;
+          return
         }
 
         if (strict) {
@@ -62,7 +62,7 @@ module.exports = {
           } else {
             delete obj[i]
           }
-          return;
+          return
         }
 
         if (!(_.isNaN(value) || _.isNull(value) || _.isUndefined(value))) {
@@ -88,17 +88,17 @@ module.exports = {
    */
   remove (obj, rm) {
     if (rm && !_.isArray(rm)) {
-      throw new Error('remove 函数, rm 参数类型必须为 array');
+      throw new Error('remove 函数, rm 参数类型必须为 array')
     }
 
     if (_.isObject(obj)) {
 
       Object.keys(obj).forEach(i => {
         if (rm.includes(i)) {
-          delete obj[i];
+          delete obj[i]
         }
         if (_.isObject(obj[i]) && !_.isDate(obj[i])) {
-          this.remove(obj[i], rm);
+          this.remove(obj[i], rm)
         }
       })
     }
@@ -124,20 +124,20 @@ module.exports = {
    * @return {object}
    */
   dateFormat (obj, pattern, args) {
-    let target = obj;
+    let target = obj
 
     if (_.isArray(target)) {
       target.forEach(i => this.dateFormat(i, pattern, args))
     } else {
-      target = obj.dataValues || target;
+      target = obj.dataValues || target
       Object.keys(target).forEach(k => {
 
         if (args.includes(k) && (_.isDate(target[k]) || _.isString(target[k]))) {
-          target[k] = moment(target[k]).format(pattern);
-          return;
+          target[k] = moment(target[k]).format(pattern)
+          return
         }
         if (_.isObject(target[k]) || _.isArray(target[k])) {
-          this.dateFormat(target[k], pattern, args);
+          this.dateFormat(target[k], pattern, args)
         }
       })
     }

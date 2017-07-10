@@ -1,12 +1,8 @@
 const models = require('../models').models;
 
 exports.getlist = (req, res) => {
-  models.article.findAll()
-    .then(objs => {
-      res.json(objs)
-    })
-    .catch(err => res.json(err))
-};
+
+}
 
 exports.new = (req, res) => {
   let body = req.body;
@@ -16,7 +12,7 @@ exports.new = (req, res) => {
       res.json(objs)
     })
     .catch(err => res.json(err))
-};
+}
 
 exports.get = (req, res) => {
   let id = req.params.id;
@@ -24,5 +20,5 @@ exports.get = (req, res) => {
   models.article.findOne({where: {id}})
     .then(obj => res.json(obj))
     .catch(err => res.json(err))
-};
+}
 

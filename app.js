@@ -21,8 +21,11 @@ const
   http = require('http'),
   numCPUs = require('os').cpus().length;
 
-require('./components/common/prototype'); // 原型注册
-
+require('./components/common/prototype') // 原型注册
+/* global vars */
+global.__components = require('path').join(process.cwd(), 'components')
+global._ = require('lodash')
+global.$ = Object.assign(require('./components').Common.Basic, require('./components').Common.Util)
 // session 配置
 let MySQLOptions = {
   host: config.mysql.options.host,

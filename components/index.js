@@ -4,7 +4,7 @@ const Common = require('./common'),
   Passport = require('./passport'),
   RBAC = require('./rbac'),
   Widgets = require('./widgets'),
-  config = require('config');
+  config = require('config')
 
 module.exports = {
   Common,

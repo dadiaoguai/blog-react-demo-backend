@@ -1,4 +1,9 @@
-const Basic = require('./basic');
+const
+  Basic = require('./basic'),
+  Util = require('./util')
 
-module.exports = {Basic}
+module.exports = {
+  Basic,
+  Util
+}
 

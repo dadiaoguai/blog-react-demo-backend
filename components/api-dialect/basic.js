@@ -2,15 +2,16 @@ const
   _ = require('lodash'),
   moment = require('moment'),
   errors = require('config').errors,
-  common = require('../common').Basic,
-  cfg = require('config').get('args');
+  common = require('../common/basic'),
+  cfg = require('config').args,
+  Sequelize = require('../../models').Sequelize
 
 class ApiDialect {
   constructor (req, res) {
-    this.req = req;
-    this.res = res;
-    this.args = null;
-    this.sent = false;
+    this.req = req
+    this.res = res
+    this.args = null
+    this.sent = false
     this.result = {}
   }
 
@@ -31,18 +32,20 @@ class ApiDialect {
    * @return {boolean}
    */
   setArgs (args) {
+
     /* ------------------------ 参数判断 ---------------------------------- */
     if (!_.isArray(args)) {
-      throw new Error('参数类型必须是Array!');
+      throw new Error('参数类型必须是Array!')
     }
     if (!args.every(arg => arg.constructor.name === 'Arg')) {
-      throw new Error('参数中每个字段都必须是 Arg 的实例!');
+      throw new Error('参数中每个字段都必须是 Arg 的实例!')
     }
 
-    let params = Object.assign({}, this.req.params, this.req.query, this.req.body);
+    let params = Object.assign({}, this.req.params, this.req.query, this.req.body)
+
     /* ------------------------ 开始处理参数 ---------------------------------- */
-    let result = true;
-    let stdArgs = {status: cfg.status.normal}; // 标准参数容器
+    let result = true
+    let stdArgs = {} // 标准参数容器
 
     let typeSet = {
       number: _.toNumber,
@@ -51,46 +54,50 @@ class ApiDialect {
       integer: _.toSafeInteger,
       array: _.toArray,
       json: JSON.parse
-    };
+    }
 
     args.forEach(arg => {
-      let field = arg.name;
+      if (this.sent) {
+        return
+      }
+
+      let field = arg.name
 
       Object.keys(params).forEach(k => {
         if (k.startsWith(field)) {
-          field = k;
+          field = k
         }
-      });
+      })
 
-      let v = params[field];
+      let v = params[field]
 
-      _.set(stdArgs, field, v);
+      _.set(stdArgs, field, v)
 
       if (arg.required && common.isEmpty(v)) {
         this.res.json({
           msg: `参数 ${field} 不能为空`,
           code: 1,
           status: 'failed'
-        });
+        })
+        this.sent = true
 
-        this.sent = true;
-        result = false;
+        result = false
 
-        return false
+        return
       }
 
       if (arg.dft && common.isEmpty(v)) {
-        stdArgs[field] = arg.dft;
+        stdArgs[field] = arg.dft
       }
 
       if (arg.type && _.has(typeSet, arg.type) && !common.isEmpty(v)) {
         if (arg.strict && !_[`is${_.upperFirst(arg.type)}`](v)) {
-          let msg;
+          let msg
 
           if (_.isString(arg.strict)) {
             msg = arg.strict
           } else if (_.isNumber(arg.strict)) {
-            msg = errors[arg.strict];
+            msg = errors[arg.strict]
           } else {
             msg = `参数 ${field} 的类型必须是 ${arg.type}`
           }
@@ -99,25 +106,52 @@ class ApiDialect {
             msg,
             code: 1,
             status: 'failed'
-          });
+          })
 
-          this.sent = true;
-          result = false;
+          this.sent = true
+          result = false
 
-          return result;
+          return
         }
 
         stdArgs[field] = typeSet[arg.type](v)
       }
 
       if (arg.dateFormat && !common.isEmpty(v)) {
-        stdArgs[field] = moment(v).format(arg.dateFormat);
+        stdArgs[field] = moment(v).format(arg.dateFormat)
       }
 
-      return true
-    });
+      if (arg.range && arg.range.length !== 0 && !arg.range.includes(v)) {
+        let include = true
 
-    this.args = common.clear(stdArgs);
+        if (_.isString(v)) {
+          if (v.includes(',')) {
+            v.split(',').forEach(i => {
+              !arg.range.includes(i) ? include = false : undefined
+            })
+          } else if (arg.range.includes(v)) {
+            include = false
+          }
+        } else if (_.isArray(v)) {
+          v.forEach(i => {
+            !arg.range.includes(i) ? include = false : undefined
+          })
+        }
+
+        if (!include) {
+          this.res.json({
+            msg: `参数 ${field} 的值必须是以下之一: ${arg.range.join(',')}`,
+            code: 1,
+            status: 'failed'
+          })
+          this.sent = true
+          result = false
+        }
+      }
+
+    })
+
+    this.args = common.clear(stdArgs)
 
     return result
   } // 思考题, 如果是批量创建, 该怎么办?
@@ -140,18 +174,23 @@ class ApiDialect {
    */
   send (opts = {
     type: 'json',
-    blank: true
+    blank: true,
+    dateFormat: ['YYYY-MM-DD HH:mm', 'createdAt', 'updatedAt']
   }) {
-    let self = this;
+    let self = this
+    let data = this.result
 
     if (!opts.type) {
-      opts.type = 'json';
+      opts.type = 'json'
     }
     if (opts.type === 'render' && !opts.views) {
-      throw new Error('opts 中的 view 参数不能为空!');
+      throw new Error('opts 中的 view 参数不能为空!')
     }
     if (!opts.blank) {
-      opts.blank = true;
+      opts.blank = true
+    }
+    if (!opts.dateFormat) {
+      opts.dateFormat = ['YYYY-MM-DD HH:mm', 'createdAt', 'updatedAt']
     }
 
     /**
@@ -161,49 +200,64 @@ class ApiDialect {
      * @return {boolean}
      */
     function _res (obj) {
-      let data = _.isArray(obj) ?
-        {objs: obj.every(i => i.dataValues) ? obj.map(i => i.dataValues) : obj} :
-        {obj: obj && obj.dataValues ? obj.dataValues : obj};
+      data = _.isArray(obj) ? {objs: obj} : {obj}
 
       if (opts.type === 'render') {
-        self.res[opts.type](opts.view, data);
+        self.res[opts.type](opts.view, data)
       }
 
       if (opts.type === 'json') {
-        data.status = 'success';
+        data.status = 'success'
         self.res[opts.type](data)
       }
 
       if (opts.type === 'send') {
-        self.res[opts.type](obj);
+        self.res[opts.type](obj)
       }
 
-      self.sent = true;
+      self.sent = true
 
       return self.sent
     }
 
-    let data = _extractFromSequelizeInstance(this.result);
+    if (_.isArray(data)) {
+      data = data.map(i => {
+        if (i instanceof Sequelize.Instance) {
+          let updatedInstance = i.clearRedundancyFields()
+          
+          return updatedInstance
+        }
+        return i
+      })
+    } else if (data instanceof Sequelize.Instance) {
+      data = data.clearRedundancyFields()
+    } else if (_.isObject(data) && !(data instanceof Sequelize.Instance)) {
+      Object.keys(data).forEach(k => {
+        if (data[k] instanceof Sequelize.Instance) {
+          data[k] = data[k].clearRedundancyFields()
+        }
+      })
+    }
 
     if (opts.blank && _.isEmpty(opts.remove)) {
-      data = common.clear(data);
+      data = common.clear(data)
     }
     if (opts.blank && !_.isEmpty(opts.remove)) {
-      data = common.clear(data, opts.remove);
+      data = common.clear(data, opts.remove)
     }
     if (!_.isEmpty(opts.remove) && !opts.blank) {
-      data = common.remove(data, opts.remove);
+      data = common.remove(data, opts.remove)
     }
 
-    if (opts.dateFormat) {
-      let format = 0;
-      let fieldIndex = 1;
+    if (data && opts.dateFormat) {
+      let format = 0
+      let fieldIndex = 1
 
-      data = common.dateFormat(data, opts.dateFormat[format], opts.dateFormat.slice(fieldIndex));
+      data = common.dateFormat(data, opts.dateFormat[format], opts.dateFormat.slice(fieldIndex))
     }
 
     if (!this.sent) {
-      _res(data);
+      _res(data)
     }
 
     return Promise.resolve(data)
@@ -238,35 +292,10 @@ class ApiDialect {
    * @return {object}
    */
   setResponse (obj) {
-    this.result = obj;
+    this.result = obj
 
     return this
   }
 }
 
-/**
- * 用于删除 sequleize 相关的属性
- * @param {object} obj 待处理的对象
- *
- * @return {object}
- * @inner
- */
-function _extractFromSequelizeInstance (obj) {
-  if (_.isArray(obj) || _.isObject(obj)) {
-    Object.keys(obj).forEach(k => {
-      if (/^[^a-zA-Z0-9]/.test(k)) {
-        return delete obj[k];
-      }
-
-      if (_.includes(['object', 'string'], typeof obj[k]) && !_.isDate(obj[k])) {
-        return _.isEmpty(obj[k]) ? delete obj[k] : _extractFromSequelizeInstance(obj[k])
-      }
-
-      return undefined;
-    })
-  }
-
-  return obj
-}
-
-module.exports = ApiDialect;
+module.exports = ApiDialect

@@ -31,19 +31,19 @@ module.exports = {
   },
   between: {
     name: '$between',
-    handler: x => x.split(',').map(i => _.toNumber(i))
+    handler: x => _.isArray(x) ? x : x.split(',')
   },
   notBetween: {
     name: '$notBetween',
-    handler: x => x.split(',').map(i => _.toNumber(i))
+    handler: x => _.isArray(x) ? x : x.split(',')
   },
   in: {
     name: '$in',
-    handler: x => x.split(',').map(i => _.toNumber(i))
+    handler: x => _.isArray(x) ? x : x.split(',')
   },
   notIn: {
     name: '$notIn',
-    handler: x => x.split(',').map(i => _.toNumber(i))
+    handler: x => _.isArray(x) ? x : x.split(',')
   },
   like: {
     name: '$like',

@@ -4,31 +4,41 @@
 
 class Arg {
   constructor (name, required = false, type) {
-    this.name = name;
-    this.required = required;
-    this.type = type;
+    this.name = name
+    this.required = required
+    this.type = type
   }
 
   setDateFormat (format) {
-    this.dateFormat = format;
+    this.dateFormat = format
 
     return this
   }
 
   setDefault (dft) {
-    this.dft = dft;
+    this.dft = dft
 
     return this
   }
 
   setStrict (x) {
-    this.strict = x || true;
+    this.strict = x || true
 
     return this
   }
 
-  setAllowNull (x) {
-    this.allowNull = x || true;
+  setRequired (x) {
+    this.required = x || true
+
+    return this
+  }
+
+  setRange (range, ...rest) {
+    if (Array.isArray(range)) {
+      this.range = [...range, ...rest]
+    } else {
+      this.range = [range, ...rest]
+    }
 
     return this
   }
