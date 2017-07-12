@@ -1,52 +1,28 @@
-const models = require('../../models').models
+const models = require('../../models').models,
+  cfg = require('config').get('args'),
+  common = require('../common').Basic;
 
-// exports.login = (req, username, password, done) => {
-//   models.account.findOne({
-//     where: {
-//       username,
-//       status: cfg.status.normal
-//     }
-//   }).then(obj => {
-//     if (!obj) {
-//       return done(null, false, '无效的账号')
-//     }
-//     let computedPassword = common.computedPassword(String(password))
-//
-//     if (obj.password !== computedPassword) {
-//       return done(null, false, '密码错误')
-//     }
-//
-//     return done(null, obj)
-//   })
-//     .catch(err => done(err))
-// }
-
-exports.login = (req, username, password = '', done) => {
-
+exports.login = (req, username, password, done) => {
   models.account.findOne({
     where: {
-      id: username,
-      status: 1
-    },
-    include: [
-      {
-        model: models.role,
-        attributes: ['id'],
-        through: {
-          attributes: [],
-          where: {status: 1}
-        },
-        required: false
-      }
-    ]
+      username,
+      status: cfg.status.normal
+    }
   }).then(obj => {
     if (!obj) {
-      return done(null, false, '无效的账号')
+      return done(null, false, '无效的账号');
     }
+    let computedPassword = common.computedPassword(password + '');
+
+    if (obj.password !== computedPassword) {
+      return done(null, false, '密码错误');
+    }
+    req.session.test = 'hello';
+
     return done(null, obj)
   })
     .catch(err => done(err))
-}
+};
 
 exports.find = (id, done) => {
   models.account.findOne({
@@ -62,9 +38,9 @@ exports.find = (id, done) => {
   })
     .then(obj => done(null, obj))
     .catch(err => done(err))
-}
+};
 
 exports.isAuthenticated = (req, res, next) => req.isAuthenticated() ? next() : res.json({
   msg: '请先登录',
   status: 'failed'
-})
+});

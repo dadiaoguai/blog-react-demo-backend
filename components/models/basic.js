@@ -14,6 +14,7 @@ const defaultDuration = 300,
   noLogin = 12,
   dftTTL = 300
 
+
 /*
  * 这是一个封装了 sequelize 处理的类, 简化了查询条件的格式, 简化了输出内容的格式
  * 使用方法: model = new Model('表名')
@@ -197,12 +198,13 @@ class Model {
 
   /**
    * findAll
+   * @param {boolean} pagination, 是否携带 count, default = false
    * @param {any} t, 事务信标
    * @param {boolean} cache, 是否缓存
    * @param {integer} ttl, 缓存存货时间
    * @return {promise}
    */
-  all (t = null, cache = true, ttl = dftTTL) {
+  all (pagination = false, t = null, cache = true, ttl = dftTTL) {
     // console.log(util.inspect(this.options, false, null))
     if (config.cache && cache && this.model.constructor.name !== 'Cacher') {
       this.model = Cacher.model(this.name).ttl(ttl)
@@ -212,8 +214,12 @@ class Model {
       this.options.transaction = t
     }
 
+    if (pagination) {
+      return this.model.findAndCount(this.options)
+    }
     return this.model.findAll(this.options)
   }
+
 
   /**
    * 更新数据

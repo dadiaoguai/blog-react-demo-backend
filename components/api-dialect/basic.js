@@ -200,7 +200,14 @@ class ApiDialect {
      * @return {boolean}
      */
     function _res (obj) {
-      data = _.isArray(obj) ? {objs: obj} : {obj}
+      if (Object.keys(obj).length === 2 && _.has(obj, 'rows') && _.has(obj, 'count')) {
+        data = {
+          objs: obj.rows,
+          count: obj.count
+        }
+      } else {
+        data = _.isArray(obj) ? {objs: obj} : {obj}
+      }
 
       if (opts.type === 'render') {
         self.res[opts.type](opts.view, data)
@@ -220,24 +227,25 @@ class ApiDialect {
       return self.sent
     }
 
-    if (_.isArray(data)) {
-      data = data.map(i => {
-        if (i instanceof Sequelize.Instance) {
-          let updatedInstance = i.clearRedundancyFields()
-          
-          return updatedInstance
-        }
-        return i
-      })
-    } else if (data instanceof Sequelize.Instance) {
-      data = data.clearRedundancyFields()
-    } else if (_.isObject(data) && !(data instanceof Sequelize.Instance)) {
-      Object.keys(data).forEach(k => {
-        if (data[k] instanceof Sequelize.Instance) {
-          data[k] = data[k].clearRedundancyFields()
-        }
-      })
-    }
+    // if (_.isArray(data)) {
+    //   data = data.map(i => {
+    //     if (i instanceof Sequelize.Instance) {
+    //       let updatedInstance = i.clearRedundancyFields()
+    //
+    //       return updatedInstance
+    //     }
+    //     return i
+    //   })
+    // } else if (data instanceof Sequelize.Instance) {
+    //   data = data.clearRedundancyFields()
+    // } else if (_.isObject(data) && !(data instanceof Sequelize.Instance)) {
+    //   Object.keys(data).forEach(k => {
+    //     if (data[k] instanceof Sequelize.Instance) {
+    //       data[k] = data[k].clearRedundancyFields()
+    //     }
+    //   })
+    // }
+    data = _dataStringify(data)
 
     if (opts.blank && _.isEmpty(opts.remove)) {
       data = common.clear(data)
@@ -296,6 +304,39 @@ class ApiDialect {
 
     return this
   }
+}
+
+/**
+ * 对要发送的数据进行 sequelize string 化处理
+ * @param {*} obj, 对象
+ * @return {*}
+ * @private
+ */
+function _dataStringify(obj) {
+  let data = obj
+
+  if (_.isArray(data)) {
+    data = data.map(i => {
+      if (i instanceof Sequelize.Instance) {
+        return i.clearRedundancyFields()
+      } else if (_.isArray(i) || _.isObject(i)) {
+        return _dataStringify(i)
+      }
+      return i
+    })
+  } else if (_.isObject(data) && !(data instanceof Sequelize.Instance)) {
+    Object.keys(data).forEach(k => {
+      if (data[k] instanceof Sequelize.Instance) {
+        data[k] = data[k].clearRedundancyFields()
+      } else if (_.isArray(data[k]) || _.isObject(data[k])) {
+        data[k] = _dataStringify(data[k])
+      }
+    })
+  } else if (data instanceof Sequelize.Instance) {
+    data = data.clearRedundancyFields()
+  }
+
+  return data
 }
 
 module.exports = ApiDialect

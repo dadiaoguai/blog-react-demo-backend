@@ -1,7 +1,8 @@
 const models = require('../models').models,
   {ApiDialect, Arg} = require('../components').ApiDialect,
   Model = require('../components').Model.Basic
-  sequelize = require('../models').sequelize
+
+sequelize = require('../models').sequelize
 
 exports.getlist = (req, res) => {
   let [api, article] = [new ApiDialect(req, res), new Model('article')]
@@ -24,11 +25,16 @@ exports.getlist = (req, res) => {
 }
 
 exports.new = (req, res) => {
-  let body = req.body;
+  let api = new ApiDialect(req, res)
+  let body = req.body
+
   body.accountId = req.user.id
-  models.article.create(body)
-    .then(objs => {
-      res.json(objs)
+  models.article
+    .create(body)
+    .then(obj => {
+      api
+        .setResponse(obj)
+        .send()
     })
     .catch(err => res.json(err))
 }
