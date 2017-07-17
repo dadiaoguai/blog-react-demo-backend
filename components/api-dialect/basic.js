@@ -156,7 +156,7 @@ class ApiDialect {
     return result
   } // 思考题, 如果是批量创建, 该怎么办?
 
-  /*
+  /**
    * 对查询出来的数据进行处理, 并发送给前端
    * 可以传入参数 opts, 对待发送的原始数据进行加工处理
    * opts = {
@@ -169,13 +169,13 @@ class ApiDialect {
    *
    *
    * @param {object} opts 数据处理参数
-   *
    * @return {Promise}
    */
   send (opts = {
     type: 'json',
     blank: true,
-    dateFormat: ['YYYY-MM-DD HH:mm', 'createdAt', 'updatedAt']
+    dateFormat: ['YYYY-MM-DD HH:mm', 'createdAt', 'updatedAt'],
+    needWrap: true
   }) {
     let self = this
     let data = this.result
@@ -193,6 +193,10 @@ class ApiDialect {
       opts.dateFormat = ['YYYY-MM-DD HH:mm', 'createdAt', 'updatedAt']
     }
 
+    if (!opts.hasOwnProperty('needWrap')) {
+      opts.needWrap = true
+    }
+
     /**
      * 辅助函数, 用于发送响应
      *
@@ -200,14 +204,19 @@ class ApiDialect {
      * @return {boolean}
      */
     function _res (obj) {
-      if (Object.keys(obj).length === 2 && _.has(obj, 'rows') && _.has(obj, 'count')) {
-        data = {
-          objs: obj.rows,
-          count: obj.count
+      if (opts.needWrap) {
+        if (_.isObject(obj) && Object.keys(obj).length <= 2 && (_.has(obj, 'rows') || _.has(obj, 'count'))) {
+          data = {
+            objs: obj.rows,
+            count: obj.count
+          }
+        } else {
+          data = _.isArray(obj) ? {objs: obj} : {obj}
         }
       } else {
-        data = _.isArray(obj) ? {objs: obj} : {obj}
+        data = obj
       }
+
 
       if (opts.type === 'render') {
         self.res[opts.type](opts.view, data)
@@ -227,31 +236,13 @@ class ApiDialect {
       return self.sent
     }
 
-    // if (_.isArray(data)) {
-    //   data = data.map(i => {
-    //     if (i instanceof Sequelize.Instance) {
-    //       let updatedInstance = i.clearRedundancyFields()
-    //
-    //       return updatedInstance
-    //     }
-    //     return i
-    //   })
-    // } else if (data instanceof Sequelize.Instance) {
-    //   data = data.clearRedundancyFields()
-    // } else if (_.isObject(data) && !(data instanceof Sequelize.Instance)) {
-    //   Object.keys(data).forEach(k => {
-    //     if (data[k] instanceof Sequelize.Instance) {
-    //       data[k] = data[k].clearRedundancyFields()
-    //     }
-    //   })
-    // }
     data = _dataStringify(data)
 
     if (opts.blank && _.isEmpty(opts.remove)) {
-      data = common.clear(data)
+      data = common.clear(data, [], false)
     }
     if (opts.blank && !_.isEmpty(opts.remove)) {
-      data = common.clear(data, opts.remove)
+      data = common.clear(data, opts.remove, false)
     }
     if (!_.isEmpty(opts.remove) && !opts.blank) {
       data = common.remove(data, opts.remove)
@@ -279,6 +270,7 @@ class ApiDialect {
    * @return {object}
    */
   error (err) {
+    console.log(err)
     return this.res.json(
       !Number.isNaN(parseInt(err.message)) ?
         {
@@ -312,7 +304,7 @@ class ApiDialect {
  * @return {*}
  * @private
  */
-function _dataStringify(obj) {
+function _dataStringify (obj) {
   let data = obj
 
   if (_.isArray(data)) {
