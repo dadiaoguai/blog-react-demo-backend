@@ -1,35 +1,38 @@
 const account = require('./account'),
   article = require('./article'),
-  error = require('./error');
+  error = require('./error')
 
 const accessValidator = require('../components').RBAC,
-  Passport = require('../components').Passport;
+  Passport = require('../components').Passport
 
 module.exports = (router, passport, rbac) => {
   router.route('/login')
     .post(passport.authenticate('local', {
       failureRedirect: '/error/login',
       failureFlash: true
-    }), account.login);
+    }), account.login)
 
   router.route('/logout')
-    .put(account.logout);
+    .put(account.logout)
 
   router.route('/error/:type')
-    .get(error.handler);
+    .get(error.handler)
 
   router.route('/accounts')
     .get(account.getlist)
-    .post(account.new);
+    .post(account.new)
 
   router.route('/accounts/:id')
     .get(account.get)
-    .put(account.update);
+    .put(account.update)
 
   router.route('/articles')
     .get(article.getlist)
-    .post(Passport.isAuthenticated,article.new);
+    .post(Passport.isAuthenticated, article.new)
+    .put(article.test)
 
   router.route('/articles/:id')
     .get(article.get)
-};
+    .put(article.update)
+    .delete(article.delete)
+}

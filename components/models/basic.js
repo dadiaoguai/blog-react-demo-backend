@@ -224,7 +224,6 @@ class Model {
   /**
    * 更新数据
    * @param {object} args, 待更新参数
-   * @param {string} userId, 操作者的 id
    * @param {any} t, 事务信标
    * @return {promise}
    */
@@ -232,14 +231,6 @@ class Model {
     let clearArgs = common.clear(args)
 
     let updatedArgs = {}
-
-    if (this.attributes.includes('updatedUsr') && !userId) {
-      throw new Error(noLogin)
-    }
-
-    if (this.attributes.includes('updatedUsr')) {
-      updatedArgs.updatedUsr = userId
-    }
 
     this.attributes.forEach(attr => {
       if (_.has(clearArgs, attr) && attr !== 'id') {
@@ -259,11 +250,10 @@ class Model {
   /**
    * 创建数据, 支持批量创建和单创建
    * @param {object|array} args, 创建 model 所需的数据
-   * @param {string} userId, 操作者的 id
    * @param {any} t, 事务信标
    * @return {promise}
    */
-  create (args, userId, t) {
+  create (args, t) {
     let clearArgs = {}
 
     Object.keys(args).forEach(key => {
@@ -271,18 +261,6 @@ class Model {
         clearArgs[key] = args[key]
       }
     })
-
-    if (this.attributes.includes('createdUsr') && !userId) {
-      throw new Error(noLogin)
-    }
-
-    if (this.attributes.includes('createdUsr')) {
-      clearArgs.createdUsr = userId
-    }
-
-    if (this.attributes.includes('updatedUsr')) {
-      clearArgs.updatedUsr = userId
-    }
 
     if (_.isArray(clearArgs)) {
       return this.model.bulkCreate(clearArgs)
@@ -305,6 +283,37 @@ class Model {
     }
 
     return run()
+  }
+
+  /**
+   * 查询目标是否存在, 如果不存在则创建, 支持批量
+   * @param {object|array} args 条件范围
+   * @param {any} t
+   * @return {object|array}
+   */
+  async findOrCreate (args, t) {
+    let result
+    if (_.isArray(args)) {
+      result = []
+      for (let arg of args) {
+        let options = {}
+
+        options.where = arg
+        if (t) {
+          options.transaction = t
+        }
+        let obj = await this.model.findOrCreate(options)
+
+        result.push(obj[0])
+      }
+    } else if (_.isObject(args)) {
+      let obj = await this.model.findOrCreate(options)
+
+      result = obj[0]
+    } else {
+      throw new Error('参数 args 必须是数组或者对象')
+    }
+    return result
   }
 
   /**

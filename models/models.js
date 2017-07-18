@@ -22,7 +22,12 @@ module.exports = sequelize => {
       type: Sequelize.INTEGER,
       defaultValue: 1
     }
-  }, {freezeTableName: true});
+  }, {
+    freezeTableName: true,
+    defaultScope: {
+      where: {status: 1}
+    }
+  });
 
   sequelize.define('article', {
     id: {
@@ -38,7 +43,12 @@ module.exports = sequelize => {
       type: Sequelize.INTEGER,
       defaultValue: 1
     }
-  }, {freezeTableName: true});
+  }, {
+    freezeTableName: true,
+    defaultScope: {
+      where: {status: 1}
+    }
+  });
 
   sequelize.define('tag', {
     id: {
@@ -55,7 +65,12 @@ module.exports = sequelize => {
       type: Sequelize.INTEGER,
       defaultValue: 1
     }
-  }, {freezeTableName: true});
+  }, {
+    freezeTableName: true,
+    defaultScope: {
+      where: {status: 1}
+    }
+  });
 
   sequelize.define('AccountRole', {
     id: {
