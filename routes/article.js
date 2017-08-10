@@ -14,6 +14,7 @@ exports.getlist = (req, res) => {
   api.args.accountId = req.user.id
   article
     .setWherestr(api.args)
+    .setOrder([['createdAt', 'DESC']])
     .all()
     .then(objs => {
       api
@@ -45,6 +46,7 @@ exports.new = (req, res) => {
 
       await obj.setTags(tags, {transaction: t})
     }
+    await req.user.addArticles([obj], {transaction: t})
     return obj
   }
 
@@ -60,6 +62,7 @@ exports.new = (req, res) => {
 exports.get = (req, res) => {
   let [api, article] = [new ApiDialect(req, res), new Model('article')]
   let args = [new Arg('id', true)]
+  let attrs = ['$all', 'include.tag.id,name']
 
   if (!api.setArgs(args)) {
     return
@@ -67,11 +70,12 @@ exports.get = (req, res) => {
 
   article
     .setWherestr(api.args)
+    .setAttributes(attrs)
     .one()
     .then(obj => {
       api
         .setResponse(obj)
-        .send()
+        .send({remove: ['ArticleTag']})
     })
     .catch(err => api.error(err))
 }

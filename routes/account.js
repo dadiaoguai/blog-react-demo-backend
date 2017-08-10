@@ -47,7 +47,7 @@ exports.new = (req, res) => {
 
   let run = async () => {
     api.args.password = common.computedPassword(api.args.password);
-    let account = await model.model.findOne({where: {status: cfg.status.normal}});
+    let account = await model.setWherestr(api.args).one(false)
 
     if (account) {
       throw new Error(existedAccountError);
