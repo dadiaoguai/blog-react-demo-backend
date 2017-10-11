@@ -1,7 +1,8 @@
 const
   {ApiDialect, Arg} = require('../components').ApiDialect,
   Model = require('../components').Model.Basic,
-  {sequelize, models} = require('../models')
+  {sequelize, models} = require('../models'),
+  md = require('markdown-it')()
 
 exports.getlist = (req, res) => {
   let [api, article] = [new ApiDialect(req, res), new Model('article')]
@@ -11,17 +12,29 @@ exports.getlist = (req, res) => {
     return
   }
 
-  api.args.accountId = req.user.id
   article
     .setWherestr(api.args)
     .setOrder([['createdAt', 'DESC']])
     .all()
     .then(objs => {
+      shortCut(objs)
       api
         .setResponse(objs)
-        .send()
+        .send({
+          dateFormat: ['YYYY-MM-DD', 'createdAt']
+        })
     })
     .catch(err => api.error(err))
+}
+
+function shortCut (objs) {
+  const htmlReg = /(<[^>]+>)|[\n\r]/g
+
+  objs.map(obj => {
+    let renderedContent = md.render(obj.content)
+
+    obj.dataValues.digest = `${renderedContent.replace(htmlReg, '').slice(0, 120)}...`
+  })
 }
 
 exports.new = (req, res) => {
@@ -75,7 +88,10 @@ exports.get = (req, res) => {
     .then(obj => {
       api
         .setResponse(obj)
-        .send({remove: ['ArticleTag']})
+        .send({
+          remove: ['ArticleTag'],
+          dateFormat: ['YYYY-MM-DD', 'createdAt']
+        })
     })
     .catch(err => api.error(err))
 }
