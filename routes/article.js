@@ -15,13 +15,16 @@ exports.getlist = (req, res) => {
   article
     .setWherestr(api.args)
     .setOrder([['createdAt', 'DESC']])
-    .all()
-    .then(objs => {
-      shortCut(objs)
+    .all(true)
+    .then(obj => {
+      shortCut(obj.rows)
+      obj.objs = obj.rows
+      delete obj.rows
       api
-        .setResponse(objs)
+        .setResponse(obj)
         .send({
-          dateFormat: ['YYYY-MM-DD', 'createdAt']
+          dateFormat: ['YYYY-MM-DD', 'createdAt'],
+          needWrap: false
         })
     })
     .catch(err => api.error(err))
@@ -33,7 +36,7 @@ function shortCut (objs) {
   objs.map(obj => {
     let renderedContent = md.render(obj.content)
 
-    obj.dataValues.digest = `${renderedContent.replace(htmlReg, '').slice(0, 120)}...`
+    obj.dataValues.digest = `${renderedContent.replace(htmlReg, '').slice(0, 60)}...`
   })
 }
 
@@ -75,7 +78,7 @@ exports.new = (req, res) => {
 exports.get = (req, res) => {
   let [api, article] = [new ApiDialect(req, res), new Model('article')]
   let args = [new Arg('id', true)]
-  let attrs = ['$all', 'include.tag.id,name']
+  let attrs = ['$all', 'include.tag.id,name?status=1']
 
   if (!api.setArgs(args)) {
     return
