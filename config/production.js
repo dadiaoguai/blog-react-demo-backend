@@ -1,6 +1,7 @@
 module.exports = {
   port: 5202,
-  cluster: true,
-  cache: true
+  serverPort: 5203,
+  cluster: false,
+  cache: false
 }
 

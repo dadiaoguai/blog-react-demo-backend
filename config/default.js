@@ -18,6 +18,7 @@ module.exports = {
   },
   cache: false,
   port: 5100,
+  serverPort: 5101,
   args,
   errors,
   cluster: false,
