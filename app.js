@@ -40,7 +40,7 @@ let sessionStore = new MySQLStore(MySQLOptions)
 let whiteList = [
   'http://localhost:5201',
   'chrome-extension://fhbjgbiflinjbdggehcddcbncdddomop',
-  'http://ec2-34-213-223-46.us-west-2.compute.amazonaws.com',
+  'http://ec2-34-213-223-46.us-west-2.compute.amazonaws.com:5203',
   'http://127.0.0.1:5203',
   undefined]
 let corsOpts = {
