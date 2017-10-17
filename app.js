@@ -46,7 +46,10 @@ let whiteList = [
   'http://127.0.0.1:80',
   'http://127.0.0.1:8080',
   undefined]
-
+app.use((req, res, next) => {
+  console.log(req.headers)
+  next()
+})
 let corsOpts = {
   origin: (origin, cb) => whiteList.includes(origin) ?
     cb(null, true) :
