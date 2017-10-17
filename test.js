@@ -19,5 +19,13 @@ const {models, sequelize} = require('./models')
 // sequelize.transaction(t => run(t))
 //   .then(obj => console.log(obj.toJSON()))
 //   .catch(err => console.log(err))
+a({
+  method: 'post',
+  url: 'http://ec2-34-213-223-46.us-west-2.compute.amazonaws.com:5202/login',
+  data: {
+    username: 'test',
+    password: 123
+  }
+})
 
 

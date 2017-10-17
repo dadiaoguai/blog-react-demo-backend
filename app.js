@@ -39,10 +39,14 @@ let sessionStore = new MySQLStore(MySQLOptions)
 // cors 配置
 let whiteList = [
   'http://localhost:5201',
+  'http://localhost:80',
+  'http://localhost:8080',
   'chrome-extension://fhbjgbiflinjbdggehcddcbncdddomop',
-  'http://ec2-34-213-223-46.us-west-2.compute.amazonaws.com:5203',
   'http://127.0.0.1:5203',
+  'http://127.0.0.1:80',
+  'http://127.0.0.1:8080',
   undefined]
+
 let corsOpts = {
   origin: (origin, cb) => whiteList.includes(origin) ?
     cb(null, true) :
