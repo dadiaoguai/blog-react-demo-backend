@@ -42,14 +42,11 @@ let whiteList = [
   'http://localhost:80',
   'http://localhost:8080',
   'chrome-extension://fhbjgbiflinjbdggehcddcbncdddomop',
+  'http://ec2-34-213-223-46.us-west-2.compute.amazonaws.com',
   'http://127.0.0.1:5203',
   'http://127.0.0.1:80',
   'http://127.0.0.1:8080',
   undefined]
-app.use((req, res, next) => {
-  console.log(req.headers)
-  next()
-})
 let corsOpts = {
   origin: (origin, cb) => whiteList.includes(origin) ?
     cb(null, true) :
